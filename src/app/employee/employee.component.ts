@@ -3,18 +3,25 @@ import { Component } from '@angular/core';
 
 @Component({
   selector: 'app-customer',
-  templateUrl: './customer.component.html',
-  styleUrls: ['./customer.component.scss']
+  templateUrl: './employee.component.html',
+  styleUrls: ['./employee.component.scss']
 })
-export class CustomerComponent {
+export class EmployeeComponent {
+  mobileLength = false;
+  nameLength = false;
+  addressLength = false;
+  addressATR = false;
   CustomerArray : any[] = [];
   isResultLoaded = false;
   isUpdateFormActive = false;
-  
   customername: string ="";
   customeraddress: string ="";
-  mobile:Number=0;
+  mobile:String="";
+  mob:String="";
+  age:Date | undefined;
   currentCustomerID = "";
+  flag:Boolean=false;
+  
 
   constructor(private http: HttpClient )
   {
@@ -34,12 +41,16 @@ export class CustomerComponent {
   }
   register()
   {
+    
   
     let bodyData = {
       "customername" : this.customername,
       "customeraddress" : this.customeraddress,
-      "mobile" : this.mobile
+      "mobile" : this.mobile,
+      "age":this.age
     };
+
+    // console.log("hello saved")
     this.http.post("http://localhost:8084/api/v1/customer/save",bodyData,{responseType: 'text'}).subscribe((resultData: any)=>
     {
         console.log(resultData);
@@ -48,7 +59,8 @@ export class CustomerComponent {
  
         this.customername = '';
       this.customeraddress = '';
-        this.mobile=0;
+        this.mobile="";
+        this.age;
     });
   }
   setUpdate(data: any)
@@ -56,6 +68,7 @@ export class CustomerComponent {
    this.customername = data.customername;
    this.customeraddress = data.customeraddress;
    this.mobile = data.mobile;
+   this.age=data.age;
    this.currentCustomerID = data.customerid;
   }
   UpdateRecords()
@@ -64,7 +77,9 @@ export class CustomerComponent {
       "customerid" : this.currentCustomerID,
       "customername" : this.customername,
       "customeraddress" : this.customeraddress,
-      "mobile" : this.mobile
+      "mobile" : this.mobile,
+      "age":this.age
+
     };
     
     this.http.put("http://localhost:8084/api/v1/customer/update",bodyData,{responseType: 'text'}).subscribe((resultData: any)=>
@@ -74,19 +89,59 @@ export class CustomerComponent {
         this.getAllCustomer();
         this.customername = '';
         this.customeraddress = '';
-        this.mobile=0;
+        this.mobile="";
+        this.age;
     });
   }
   save()
   {
-    if(this.currentCustomerID == '')
-    {
-        this.register();
+    
+    var containsAtTheRate = false;
+    if(this.mobile.length != 10){
+      this.mobileLength = true;
     }
-      else
-      {
-       this.UpdateRecords();
-      }      
+    else this.mobileLength = false;
+    if(this.customername.length < 1){
+      this.nameLength = true;
+      //alert('Enter Name');
+    }else this.nameLength = false;
+    if(this.customeraddress.length < 1){
+      this.addressLength = true;
+      //alert('Enter Email Address');
+    }else{
+      this.addressLength = false;
+      
+
+      for (let i = 0; i < this.customeraddress.length; i++) {
+        if(this.customeraddress[i] == '@'){
+          containsAtTheRate = true;
+          break;
+        }
+      }
+      if(containsAtTheRate == false){
+        this.addressATR = true;
+        //alert('Email Address Should Contain @ symbol');
+      }else this.addressATR = false;
+    }
+
+      // if(containsAtTheRate == false){
+      //   alert('Email Address Should Contain @ symbol');
+      //   this.flag=true
+      //   // console.log("breaked")
+      // }
+    this.flag = this.mobileLength || this.nameLength || this.addressLength || this.addressATR;
+    console.log(this.flag)
+    if(this.currentCustomerID == '' && this.flag!=true) {
+      console.log("breaked")
+      this.register();
+    }
+    else if(this.flag!=true)
+    {
+     this.UpdateRecords();
+    }  
+    else{
+      // alert("employee not created");
+    }
   }
   setDelete(data: any)
   {
@@ -100,7 +155,8 @@ export class CustomerComponent {
  
         this.customername = '';
       this.customeraddress = '';
-        this.mobile=0;
+        this.mobile="";
+        this.age;
   
     });
   }
